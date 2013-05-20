@@ -1,0 +1,8 @@
+#
+# Parameters to be passed to fibaro-poller
+#
+fibaro-server=TODO
+
+mysql-pwd=TODO
+
+elapse=50
