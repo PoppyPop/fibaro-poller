@@ -1,0 +1,12 @@
+[Unit]
+Description=Historisation Température FIbaro HC2
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/run/fibaro-poller.pid
+ExecStart=/usr/sbin/fibaro-poller -d -p /run/fibaro-poller.pid
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

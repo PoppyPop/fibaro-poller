@@ -1,0 +1,15 @@
+install:
+	-cp fibaro-poller /usr/sbin/fibaro-poller
+	-cp ../fibaro-poller.service /etc/systemd/system/fibaro-poller.service
+	-cp ../fibaro-poller /etc/conf.d/fibaro-poller
+	-@echo ' '
+	
+uninstall:
+	-$(RM) -rf /usr/sbin/fibaro-poller
+	-systemctl disable fibaro-poller
+	-$(RM) -rf /etc/systemd/system/fibaro-poller.service
+	-$(RM) -rf /etc/conf.d/fibaro-poller
+	-@echo ' '	
+
+.PHONY: all clean dependents
+.SECONDARY:
