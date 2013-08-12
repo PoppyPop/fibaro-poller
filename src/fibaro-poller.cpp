@@ -119,14 +119,14 @@ bool callFibaro(string fibServer, string fibUser, string fibPwd, string &datas) 
 	curl_global_cleanup();
 
 	if (retCurl == CURLE_OK && http_code == 200) {
-			// On supprime les crochets
-			readBuffer.replace(readBuffer.find_first_of("["), 1, "{");
-			readBuffer.replace(readBuffer.find_last_of("]"), 1, "}");
+		// On supprime les crochets
+		readBuffer.replace(readBuffer.find_first_of("["), 1, "{");
+		readBuffer.replace(readBuffer.find_last_of("]"), 1, "}");
 
-			log(LOG_INFO, "Message RAW: %s", readBuffer.c_str());
+		log(LOG_INFO, "Message RAW: %s", readBuffer.c_str());
 
-			datas = readBuffer;
-			return true;
+		datas = readBuffer;
+		return true;
 	} else if (retCurl == CURLE_OK) {
 		log(LOG_ERR, "Erreur de lecture avec le code HTTP %i", http_code);
 	}
@@ -145,6 +145,7 @@ int main(int argc, char* argv[]) {
 	string fibaroUser = "admin";
 	string fibaroPassword = "admin";
 	bool optimisationBdd = true;
+	bool withWeather = false;
 
 	ifstream inFile("/etc/conf.d/fibaro-poller");
 
@@ -163,6 +164,7 @@ int main(int argc, char* argv[]) {
 		config.Get("elapse", elapse);
 		config.Get("pidfile", pidfile);
 		config.Get("nombre-cycle", nbCycle);
+		config.Get("with-weather", withWeather);
 	}
 
 	static const struct option longOpts[] = { { "fibaro-server",
@@ -176,10 +178,11 @@ int main(int argc, char* argv[]) {
 			required_argument, NULL, 'E' }, { "pidfile", required_argument,
 			NULL, 'p' }, { "visualisation", no_argument, NULL, 'v' }, {
 			"nombre-cycle", required_argument, NULL, 'n' }, {
-			"no-bdd-optimisation", no_argument, NULL, 'o' } };
+			"no-bdd-optimisation", no_argument, NULL, 'o' }, { "with-weather",
+			no_argument, NULL, 'w' } };
 
 	// Traitement des paramètres
-	while ((c = getopt_long(argc, argv, "dXs:hYH:D:T:L:P:E:p:vn:ozu:U:",
+	while ((c = getopt_long(argc, argv, "dXs:hYH:D:T:L:P:E:p:vn:ozu:U:w",
 			longOpts, &longIndex)) != -1)
 		switch (c) {
 		case 'X':
@@ -233,6 +236,9 @@ int main(int argc, char* argv[]) {
 		case 'z':
 			DryRun = true;
 			break;
+		case 'w':
+			withWeather = true;
+			break;
 		case 'h':
 
 			printf("--help \n");
@@ -274,6 +280,9 @@ int main(int argc, char* argv[]) {
 			printf("--visualisation\n");
 			printf("-v \t: Mode visualisation (Test de la ligne teleinfo)\n");
 
+			printf("--with-weather\n");
+			printf("-w \t: Read weather as an temperature sensor.\n");
+
 			printf("--nombre-cycle {int}\n");
 			printf(
 					"-n {int} \t: Nombre de cycle maximum sans modification en mode daemon. (Defaut: 10)\n");
@@ -314,6 +323,7 @@ int main(int argc, char* argv[]) {
 	log(LOG_INFO, "fibaroServer : %s", fibaroServer.c_str());
 	log(LOG_INFO, "elapse : %i", elapse);
 	log(LOG_INFO, "pidfile : %s", pidfile.c_str());
+	log(LOG_INFO, "Weather : %s", (withWeather) ? "Oui" : "Non");
 
 	if (ModeTest) {
 		cout << "No Test Mode" << endl;
@@ -374,6 +384,17 @@ int main(int argc, char* argv[]) {
 											nodeObj.Get("name").ToString(),
 											atof(
 													propObj.Get("value").ToString().c_str()));
+								} else if ((nodeObj.Get("type").ToString()
+										== "weather") && withWeather) {
+									Jzon::Object propObj = nodeObj.Get(
+											"properties").AsObject();
+
+									temps.AjoutTemp(
+											nodeObj.Get("roomID").ToInt(),
+											nodeObj.Get("id").ToInt(),
+											nodeObj.Get("name").ToString(),
+											atof(
+													propObj.Get("Temperature").ToString().c_str()));
 								}
 							}
 						}

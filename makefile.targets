@@ -4,6 +4,10 @@ install:
 	-cp ../fibaro-poller /etc/conf.d/fibaro-poller
 	-@echo ' '
 	
+installBinary:
+	-cp fibaro-poller /usr/sbin/fibaro-poller
+	-@echo ' '
+	
 uninstall:
 	-$(RM) -rf /usr/sbin/fibaro-poller
 	-systemctl disable fibaro-poller
