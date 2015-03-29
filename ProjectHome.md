@@ -1,0 +1,1 @@
+A c poller that poll the fibaro Home Center 2 API to get current datas of temperature sensor. an display it in a php - javascript app with highcharts.
